@@ -35,7 +35,6 @@ class User(db.Model):
                            nullable=False)
     last_name = db.Column(db.String(30),
                           nullable=False)
-# TODO Change params
 
     @classmethod
     def register(cls, username, password, email, first_name, last_name):
@@ -64,3 +63,14 @@ class User(db.Model):
             return u
         else:
             return False
+
+    # @classmethod
+    # def is_duplicate(cls, username, email):
+    #     """takes in username and email returns true or false whether they are taken"""
+
+    #     u
+    #     # breakpoint()
+    #     if user:
+    #         return False
+    #     else:
+    #         return True

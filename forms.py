@@ -2,10 +2,9 @@
 
 
 from flask_wtf import FlaskForm
-# import your own form types and validators
+
 from wtforms import StringField, PasswordField, EmailField
 from wtforms.validators import InputRequired, Email, Length
-# import email_validator
 
 
 class CreateUserForm(FlaskForm):

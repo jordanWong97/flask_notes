@@ -16,12 +16,12 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 
 connect_db(app)
-db.create_all()
+# db.create_all()
 
 # Having the Debug Toolbar show redirects explicitly is often useful;
 # however, if you want to turn it off, you can uncomment this line:
 #
-# app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
+app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 
 toolbar = DebugToolbarExtension(app)
 
@@ -32,6 +32,7 @@ toolbar = DebugToolbarExtension(app)
 @app.get('/')
 def index():
     """Redirects to /register route"""
+# TODO:check if session and go to users page
 
     return redirect('/register')
 
@@ -39,7 +40,7 @@ def index():
 @app.route("/register", methods=["GET", "POST"])
 def register_user():
     """ Register user, if error, renders register page """
-
+    # breakpoint()
     form = CreateUserForm()
 
     if form.validate_on_submit():
@@ -54,10 +55,12 @@ def register_user():
                              email=email,
                              first_name=first_name,
                              last_name=last_name)
+    # TODO: check for dupe names, query the table to see if  the username or email exist
 
         db.session.add(user)
         db.session.commit()
-        session['user_id'] = user.username
+        # change to username
+        session['username'] = user.username
 
         flash(f"{username} account created")
         return redirect(f"/users/{user.username}")
@@ -80,7 +83,7 @@ def login_user():
         user = User.authenticate(username, password)
 
         if user:
-            session["user_id"] = user.username
+            session["username"] = user.username
             return redirect(f"/users/{user.username}")
     else:
         form.username.errors = ["Bad name/password"]
@@ -91,10 +94,13 @@ def login_user():
 def show_secret(username):
     """Show hidden page for logged-in users only."""
     # breakpoint()
-    if "user_id" not in session or session['user_id'] != username:
+    if "username" not in session:
         flash("You must be logged in to view!")
         return redirect("/")
 
+    elif session['username'] != username:
+        flash("You are not authorized to view this page!")
+        return redirect("/")
     else:
         user = User.query.get_or_404(username)
         form = CSRFProtectForm()
@@ -108,7 +114,8 @@ def logout():
     form = CSRFProtectForm()
 
     if form.validate_on_submit():
-        # Remove "user_id" if present, but no errors if it wasn't
-        session.pop("user_id", None)
+        # Remove "username" if present, but no errors if it wasn't
+        session.pop("username", None)
+        # breakpoint()
 
     return redirect("/")
