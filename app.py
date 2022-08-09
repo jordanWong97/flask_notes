@@ -4,7 +4,7 @@ from flask import Flask, render_template, redirect, flash, session
 
 from flask_debugtoolbar import DebugToolbarExtension
 from models import db, connect_db, User
-from forms import CreateUserForm, LoginForm
+from forms import CreateUserForm, LoginForm, CSRFProtectForm
 
 
 app = Flask(__name__)
@@ -60,7 +60,7 @@ def register_user():
         session['user_id'] = user.username
 
         flash(f"{username} account created")
-        return redirect("/secret")
+        return redirect(f"/users/{user.username}")
 
     else:
         return render_template(
@@ -81,18 +81,34 @@ def login_user():
 
         if user:
             session["user_id"] = user.username
-            return redirect("/secret")
-        else:
-            form.username.errors = ["Bad name/password"]
+            return redirect(f"/users/{user.username}")
+    else:
+        form.username.errors = ["Bad name/password"]
+        return render_template('login.html', form=form)
 
 
-@app.get('/secret')
-def show_secret():
+@app.get('/users/<username>')
+def show_secret(username):
     """Show hidden page for logged-in users only."""
-
-    if "user_id" not in session:
+    # breakpoint()
+    if "user_id" not in session or session['user_id'] != username:
         flash("You must be logged in to view!")
         return redirect("/")
 
     else:
-        return render_template("secret.html")
+        user = User.query.get_or_404(username)
+        form = CSRFProtectForm()
+        return render_template("secret.html", user=user, form=form)
+
+
+@app.post("/logout")
+def logout():
+    """Logs user out and redirects to homepage."""
+
+    form = CSRFProtectForm()
+
+    if form.validate_on_submit():
+        # Remove "user_id" if present, but no errors if it wasn't
+        session.pop("user_id", None)
+
+    return redirect("/")

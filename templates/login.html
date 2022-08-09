@@ -4,6 +4,7 @@
 Login
 {% endblock %}
 
+{% block body %}
 <form id="login-form" method="POST" action="/login">
   {{ form.hidden_tag() }}
   <!--add type=hidden form fields -->
@@ -28,5 +29,5 @@ Login
   <button type="submit">Submit</button>
 </form>
 
-{% block body %}
+
 {% endblock %}

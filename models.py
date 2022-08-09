@@ -35,19 +35,20 @@ class User(db.Model):
                            nullable=False)
     last_name = db.Column(db.String(30),
                           nullable=False)
+# TODO Change params
 
     @classmethod
-    def register(cls, username, pwd, email, first, last):
+    def register(cls, username, password, email, first_name, last_name):
         """Register user w/hashed password & return user."""
 
-        hashed = bcrypt.generate_password_hash(pwd).decode('utf8')
+        hashed = bcrypt.generate_password_hash(password).decode('utf8')
 
         # return instance of user w/username and hashed pwd
         return cls(username=username,
-                   pwd=hashed,
+                   password=hashed,
                    email=email,
-                   first=first,
-                   last=last)
+                   first_name=first_name,
+                   last_name=last_name)
 
     @classmethod
     def authenticate(cls, username, pwd):
