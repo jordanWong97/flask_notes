@@ -3,8 +3,8 @@
 from flask import Flask, render_template, redirect, flash, session
 
 from flask_debugtoolbar import DebugToolbarExtension
-from models import db, connect_db, User
-from forms import CreateUserForm, LoginForm, CSRFProtectForm
+from models import db, connect_db, User, Note
+from forms import CreateUserForm, LoginForm, CSRFProtectForm, CreateNoteForm
 
 
 app = Flask(__name__)
@@ -94,11 +94,11 @@ def login_user():
 def show_secret(username):
     """Show hidden page for logged-in users only."""
     # breakpoint()
-    if "username" not in session:
-        flash("You must be logged in to view!")
-        return redirect("/")
+    # if "username" not in session:
+    #     flash("You must be logged in to view!")
+    #     return redirect("/")
 
-    elif session['username'] != username:
+    if session['username'] != username:
         flash("You are not authorized to view this page!")
         return redirect("/")
     else:
@@ -119,3 +119,57 @@ def logout():
         # breakpoint()
 
     return redirect("/")
+
+
+###################### NOTES ###################################
+
+@app.post("/users/<username>/delete")
+def delete_user(username):
+    """Checks user for authorization to delete, on success redirect to register,
+    if fail, redirects to login"""
+
+    form = CSRFProtectForm()
+
+    if form.validate_on_submit():
+
+        if "username" not in session:
+            flash("You must be logged in to view!")
+            return redirect("/login")
+        elif session['username'] != username:
+            flash("You are not authorized!")
+            return redirect("/")
+        else:
+            user = User.query.get_or_404(username)
+            db.session.delete(user)
+            db.session.commit()
+            session.pop("username", None)
+            flash("User has been deleted")
+            return redirect('/')
+
+    return redirect("/login")
+
+
+@app.route("/users/<username>/notes/add", methods=["GET", "POST"])
+def add_note(username):
+    """ Goes to add note page, on submission, creates not and redirects back to
+    user page to show all current user notes, on failure, renders add note page
+    """
+
+    form = CreateNoteForm()
+
+    if form.validate_on_submit():
+        title = form.title.data
+        content = form.content.data
+
+        note = Note(title=title,
+                    content=content,
+                    owner=username)
+        # TODO: do we need to authorize every single time we do something?
+        # authenticate once
+        db.session.add(note)
+        db.session.commit()
+
+        return redirect(f'/users/{username}')
+
+    else:
+        return render_template('add_note.html', form=form, username=username)

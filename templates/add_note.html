@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Add Note
+{% endblock %}
+
+{% block body %}
+
+<form id="create-note-form" method="POST" action="/users/{{username}}/notes/add">
+  {{ form.hidden_tag() }}
+  <!--add type=hidden form fields -->
+
+  {% for field in form
+  if field.widget.input_type != 'hidden' %}
+
+  <div>
+    {{ field.label }}
+    <div>
+      {{ field }}
+
+      {% for error in field.errors %}
+      {{ error }}
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor%}
+  <button type="submit">Submit</button>
+
+</form>
+
+{% endblock %}

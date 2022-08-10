@@ -35,6 +35,8 @@ class User(db.Model):
                            nullable=False)
     last_name = db.Column(db.String(30),
                           nullable=False)
+    notes = db.relationship('Note',
+                            backref='user')
 
     @classmethod
     def register(cls, username, password, email, first_name, last_name):
@@ -74,3 +76,21 @@ class User(db.Model):
     #         return False
     #     else:
     #         return True
+
+
+class Note(db.Model):
+    """Playlist."""
+
+    __tablename__ = "notes"
+
+    id = db.Column(db.Integer,
+                   nullable=False,
+                   autoincrement=True,
+                   primary_key=True)
+    title = db.Column(db.String(100),
+                      nullable=False)
+    content = db.Column(db.Text,
+                        nullable=False)
+    owner = db.Column(db.String(20),
+                      db.ForeignKey('users.username'),
+                      nullable=False)
